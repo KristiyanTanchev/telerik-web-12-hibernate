@@ -1,0 +1,28 @@
+package com.company.web.springdemo.services;
+
+import com.company.web.springdemo.models.Beer;
+import com.company.web.springdemo.models.User;
+
+import java.util.List;
+import java.util.Set;
+
+public interface UserService {
+
+    List<User> get();
+
+    User get(int id);
+
+    User get(String username);
+
+    void create(User user);
+
+    void update(User user);
+
+    void delete(int id);
+
+    void addBeerToWishList(User user, Beer beer, int userId);
+
+    void removeFromWishList(User user, Beer beer, int userId);
+
+    Set<Beer> getWishList(User requester, int userId);
+}

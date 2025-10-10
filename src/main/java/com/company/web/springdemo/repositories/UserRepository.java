@@ -22,9 +22,9 @@ public interface UserRepository {
 
     void delete(int id);
 
-    void addBeerToWishList(User user, Beer beer);
+    void addBeerToWishList(User user, int beerId);
 
-    void removeFromWishList(User user, Beer beer);
+    void removeFromWishList(int userId, int beerId);
 
     Set<Beer> getWishList(int userId);
 }

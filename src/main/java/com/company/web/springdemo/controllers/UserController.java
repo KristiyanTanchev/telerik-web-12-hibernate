@@ -28,17 +28,14 @@ public class UserController {
 
     private final UserService userService;
     private final AuthenticationHelper authenticationHelper;
-    private final BeerMapper beerMapper;
     private final UserMapper userMapper;
 
     @Autowired
     public UserController(UserService userService,
                           AuthenticationHelper authenticationHelper,
-                          BeerMapper beerMapper,
                           UserMapper userMapper) {
         this.userService = userService;
         this.authenticationHelper = authenticationHelper;
-        this.beerMapper = beerMapper;
         this.userMapper = userMapper;
     }
 
@@ -67,14 +64,13 @@ public class UserController {
         }
     }
 
-    @PostMapping("/{userId}/wishlist")
+    @PostMapping("/{userId}/wishlist/{beerId}")
     public void addToWishList(@RequestHeader HttpHeaders headers,
                               @PathVariable int userId,
-                              @RequestBody BeerDto beerDto){
+                              @PathVariable int beerId){
         try {
             User requester = authenticationHelper.tryGetUser(headers);
-            Beer beer = beerMapper.fromDto(beerDto);
-            userService.addBeerToWishList(requester, beer, userId);
+            userService.addBeerToWishList(requester, beerId, userId);
         }
         catch (AuthorizationException e){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -84,9 +80,21 @@ public class UserController {
         }
     }
 
-
-//    delete - removes a beer from a user's wishlist.
-
+    @DeleteMapping("/{userId}/wishlist/{beerId}")
+    public void removeFromWishList(@RequestHeader HttpHeaders headers,
+                              @PathVariable int userId,
+                              @PathVariable int beerId){
+        try {
+            User requester = authenticationHelper.tryGetUser(headers);
+            userService.removeFromWishList(requester, beerId, userId);
+        }
+        catch (AuthorizationException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+        catch (EntityNotFoundException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
 
     @PostMapping
     public User create(@Valid @RequestBody UserDto userDto) {

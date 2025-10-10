@@ -5,6 +5,7 @@ import com.company.web.springdemo.exceptions.EntityDuplicateException;
 import com.company.web.springdemo.exceptions.EntityNotFoundException;
 import com.company.web.springdemo.models.Beer;
 import com.company.web.springdemo.models.User;
+import com.company.web.springdemo.repositories.BeerRepository;
 import com.company.web.springdemo.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,12 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final BeerRepository beerRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, BeerRepository beerRepository) {
         this.userRepository = userRepository;
+        this.beerRepository = beerRepository;
     }
 
     @Override
@@ -73,25 +76,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addBeerToWishList(User user, Beer beer, int userId) {
+    public void addBeerToWishList(User user, int beerId, int userId) {
         if (!isUserAuthorized(user, userId)){
             throw new AuthorizationException("You are not authorized to add to this wishlist");
         }
-        if (user.getWishlist().contains(beer)){
-            return;
-        }
-        userRepository.addBeerToWishList(user, beer);
+        userRepository.addBeerToWishList(user, beerId);
     }
 
     @Override
-    public void removeFromWishList(User user, Beer beer, int userId) {
-        if (!isUserAuthorized(user, userId)){
+    public void removeFromWishList(User requester, int beerId, int userId) {
+        if (!isUserAuthorized(requester, userId)){
             throw new AuthorizationException("You are not authorized to remove from this wishlist.");
         }
-        if (!user.getWishlist().contains(beer)){
-            throw new EntityNotFoundException("Beer", "id", String.valueOf(beer.getId()));
+        User user = userRepository.get(userId);
+        Beer beer = beerRepository.get(beerId);
+        if (beer == null){
+            throw new EntityNotFoundException("Beer", "id", String.valueOf(beerId));
         }
-        userRepository.removeFromWishList(user, beer);
+        userRepository.removeFromWishList(userId, beerId);
     }
 
     @Override

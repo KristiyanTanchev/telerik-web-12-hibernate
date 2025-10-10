@@ -20,9 +20,9 @@ public interface UserService {
 
     void delete(int id, User requester);
 
-    void addBeerToWishList(User user, Beer beer, int userId);
+    void addBeerToWishList(User user, int beerId, int userId);
 
-    void removeFromWishList(User user, Beer beer, int userId);
+    void removeFromWishList(User user, int beerId, int userId);
 
     Set<Beer> getWishList(User requester, int userId);
 }

@@ -3,6 +3,7 @@ package com.company.web.springdemo.repositories;
 import com.company.web.springdemo.exceptions.EntityNotFoundException;
 import com.company.web.springdemo.models.Beer;
 import com.company.web.springdemo.models.User;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -110,33 +112,55 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void addBeerToWishList(User user, Beer beer) {
-        throw new UnsupportedOperationException();
+    public void addBeerToWishList(User user, int beerId) {
+        try(Session session = sessionFactory.openSession()){
+            Transaction tx = session.beginTransaction();
+            try {
+                User userToUpdate = session.get(User.class, user.getId());
+                Beer beerToAdd = session.get(Beer.class, beerId);
+                if (userToUpdate == null){
+                    throw new EntityNotFoundException("User", "id", String.valueOf(user.getId()));
+                }
+                if (beerToAdd == null){
+                    throw new EntityNotFoundException("Beer", "id", String.valueOf(beerId));
+                }
+                userToUpdate.getWishlist().add(beerToAdd);
+                tx.commit();
+            }catch (RuntimeException e) {
+                tx.rollback();
+                throw e;
+            }
+        }
     }
 
     @Override
-    public void removeFromWishList(User user, Beer beer) {
-        throw new UnsupportedOperationException();
+    public void removeFromWishList(int userId, int beerId) {
+        try(Session session = sessionFactory.openSession()){
+            Transaction tx = session.beginTransaction();
+            try {
+                User user = session.get(User.class, userId);
+                Beer beer = session.get(Beer.class, beerId);
+                if (!user.getWishlist().contains(beer)){
+                    throw new EntityNotFoundException("Beer", "id", String.valueOf(beerId));
+                }
+                user.getWishlist().remove(beer);
+                tx.commit();
+            }catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
+        }
     }
 
     @Override
     public Set<Beer> getWishList(int userId) {
-        throw new UnsupportedOperationException();
-    }
-
-    private List<User> getUsers(ResultSet userData) throws SQLException {
-        List<User> users = new ArrayList<>();
-        while (userData.next()) {
-            User user = new User();
-            user.setId(userData.getInt("user_id"));
-            user.setUsername(userData.getString("username"));
-            user.setPassword(userData.getString("password"));
-            user.setFirstName(userData.getString("first_name"));
-            user.setLastName(userData.getString("last_name"));
-            user.setEmail(userData.getString("email"));
-            user.setAdmin(userData.getBoolean("is_admin"));
-            users.add(user);
+        try(Session session = sessionFactory.openSession()){
+            User user = session.get(User.class, userId);
+            if (user == null){
+                throw new EntityNotFoundException("User", "id", String.valueOf(userId));
+            }
+            Hibernate.initialize(user.getWishlist());
+            return new HashSet<>(user.getWishlist());
         }
-        return users;
     }
 }

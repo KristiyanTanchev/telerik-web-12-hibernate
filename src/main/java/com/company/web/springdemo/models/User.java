@@ -16,21 +16,19 @@ public class User {
     @Column (name = "user_id")
     private int id;
 
-    @NotNull
+    @Column (name = "username")
     private String username;
 
-    @NotNull
+    @Column (name = "password")
     private String password;
 
-    @NotNull
     @Column (name = "first_name")
     private String firstName;
 
-    @NotNull
     @Column (name = "last_name")
     private String lastName;
 
-    @NotNull
+    @Column (name = "email")
     private String email;
 
     @Column (name = "is_admin")
@@ -50,6 +48,10 @@ public class User {
     }
 
     public User() {
+    }
+
+    public void setWishlist(Set<Beer> wishlist) {
+        this.wishlist = wishlist;
     }
 
     public User(int id, String username, String password, boolean isAdmin) {

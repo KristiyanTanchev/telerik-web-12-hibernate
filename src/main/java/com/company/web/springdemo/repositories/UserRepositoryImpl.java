@@ -1,169 +1,127 @@
 package com.company.web.springdemo.repositories;
 
 import com.company.web.springdemo.exceptions.EntityNotFoundException;
-import com.company.web.springdemo.helpers.DbHelper;
+import com.company.web.springdemo.models.Beer;
 import com.company.web.springdemo.models.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    private final DbHelper dbHelper;
+
+    private final SessionFactory sessionFactory;
 
     @Autowired
-    public UserRepositoryImpl(DbHelper dbHelper) {
-        this.dbHelper = dbHelper;
+    public UserRepositoryImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
     public List<User> get() {
-        String query = "select * " +
-                "from users";
-        try (
-                Connection connection = dbHelper.getConnection();
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(query)
-        ) {
-            return getUsers(resultSet);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        try(Session session = sessionFactory.openSession())
+        {
+            Query<User> query = session.createQuery("from User", User.class);
+            return query.list();
         }
     }
 
     @Override
     public User get(int id) {
-        String query = "select * " +
-                "from users " +
-                "where user_id = ?";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setInt(1, id);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                List<User> result = getUsers(resultSet);
-                if (result.size() == 0) {
-                    throw new EntityNotFoundException("User", id);
-                }
-                return result.get(0);
+        try(Session session = sessionFactory.openSession()){
+            User user = session.get(User.class, id);
+            if (user == null){
+                throw new EntityNotFoundException("User", "id", String.valueOf(id));
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return user;
         }
     }
 
     @Override
     public User getByEmail(String email) {
-        String query = "select * " +
-                "from users " +
-                "where email = ?";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setString(1, email);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                List<User> result = getUsers(resultSet);
-                if (result.size() == 0) {
-                    throw new EntityNotFoundException("User", "email", email);
-                }
-                return result.get(0);
+        try (Session session = sessionFactory.openSession()) {
+            Query<User> query = session.createQuery("from User where email = :email", User.class);
+            query.setParameter("email", email);
+            List<User> result = query.list();
+            if (result.isEmpty()){
+                throw new EntityNotFoundException("User", "email", email);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return result.get(0);
         }
     }
 
     @Override
     public User getByUsername(String username) {
-        String query = "select *" +
-                "from users " +
-                "where username = ?";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setString(1, username);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                List<User> result = getUsers(resultSet);
-                if (result.size() == 0) {
-                    throw new EntityNotFoundException("User", "username", username);
-                }
-                return result.get(0);
+        try (Session session = sessionFactory.openSession()) {
+            Query<User> query = session.createQuery("from User where username = :name", User.class);
+            query.setParameter("name", username);
+            List<User> result = query.list();
+            if (result.isEmpty()){
+                throw new EntityNotFoundException("User", "username", username);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return result.get(0);
         }
     }
 
     @Override
     public void create(User user) {
-        String query = "insert into users (username, password, first_name, last_name, email, is_admin) " +
-                "values (?, ?, ?, ?, ?, ?)";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPassword());
-            statement.setString(3, user.getFirstName());
-            statement.setString(4, user.getLastName());
-            statement.setString(5, user.getEmail());
-            statement.setBoolean(6, user.isAdmin());
-            statement.executeUpdate();
-
-            User newUser = getByEmail(user.getEmail());
-            user.setId(newUser.getId());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.persist(user);
+            session.getTransaction().commit();
         }
     }
 
     @Override
-    public void update(User user) {
-        String query = "update users set " +
-                "username = ?, " +
-                "password = ?, " +
-                "first_name = ?, " +
-                "last_name = ?, " +
-                "email = ?, " +
-                "is_admin = ? " +
-                "where user_id = ?";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPassword());
-            statement.setString(3, user.getFirstName());
-            statement.setString(4, user.getLastName());
-            statement.setString(5, user.getEmail());
-            statement.setBoolean(6, user.isAdmin());
-            statement.setInt(7, user.getId());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public User update(User user) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.merge(user);
+            session.getTransaction().commit();
+            return user;
         }
     }
 
     @Override
     public void delete(int id) {
-        String query = "delete from users " +
-                "where user_id = ?";
-        try (
-                Connection connection = dbHelper.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)
-        ) {
-            statement.setInt(1, id);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        try(Session session = sessionFactory.openSession()){
+            Transaction tx = session.beginTransaction();
+            try {
+                User user = session.get(User.class, id);
+                if (user == null) {
+                    throw new EntityNotFoundException("User", "id", String.valueOf(id));
+                }
+                session.remove(user);
+                tx.commit();
+            }catch (RuntimeException e) {
+                tx.rollback();
+                throw e;
+            }
         }
+    }
+
+    @Override
+    public void addBeerToWishList(User user, Beer beer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeFromWishList(User user, Beer beer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Beer> getWishList(int userId) {
+        throw new UnsupportedOperationException();
     }
 
     private List<User> getUsers(ResultSet userData) throws SQLException {

@@ -39,22 +39,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void create(User user) {
-        boolean duplicateExists = true;
-        try {
-            userRepository.getByEmail(user.getEmail());
-        } catch (EntityNotFoundException e) {
-            duplicateExists = false;
-        }
-
-        if (duplicateExists) {
-            throw new EntityDuplicateException("User", "email", user.getEmail());
-        }
+        validateUniqueEmail(user);
+        validateUniqueUsername(user);
 
         userRepository.create(user);
     }
 
     @Override
-    public void update(User user) {
+    public User update(User user) {
         boolean duplicateExists = true;
         try {
             User existingUser = userRepository.getByEmail(user.getEmail());
@@ -69,11 +61,14 @@ public class UserServiceImpl implements UserService {
             throw new EntityDuplicateException("User", "email", user.getEmail());
         }
 
-        userRepository.update(user);
+        return userRepository.update(user);
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(int id, User requester) {
+        if (!isUserAuthorized(requester, id)){
+            throw new AuthorizationException("You are not authorized to complete this operation.");
+        }
         userRepository.delete(id);
     }
 
@@ -109,5 +104,23 @@ public class UserServiceImpl implements UserService {
 
     private boolean isUserAuthorized(User requester, int userId) {
         return (requester.isAdmin() || requester.getId() == userId);
+    }
+
+    private void validateUniqueEmail(User user){
+        try {
+            userRepository.getByEmail(user.getEmail());
+            throw new EntityDuplicateException("User", "email", user.getEmail());
+        } catch (EntityNotFoundException ignored){
+
+        }
+    }
+
+    private void validateUniqueUsername(User user){
+        try {
+            userRepository.getByUsername(user.getUsername());
+            throw new EntityDuplicateException("User", "username", user.getUsername());
+        } catch (EntityNotFoundException ignored) {
+
+        }
     }
 }

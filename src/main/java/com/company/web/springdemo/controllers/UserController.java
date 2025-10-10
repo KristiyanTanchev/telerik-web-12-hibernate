@@ -5,9 +5,11 @@ import com.company.web.springdemo.exceptions.EntityDuplicateException;
 import com.company.web.springdemo.exceptions.EntityNotFoundException;
 import com.company.web.springdemo.helpers.AuthenticationHelper;
 import com.company.web.springdemo.helpers.BeerMapper;
+import com.company.web.springdemo.helpers.UserMapper;
 import com.company.web.springdemo.models.Beer;
 import com.company.web.springdemo.models.BeerDto;
 import com.company.web.springdemo.models.User;
+import com.company.web.springdemo.models.UserDto;
 import com.company.web.springdemo.services.BeerService;
 import com.company.web.springdemo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +29,17 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationHelper authenticationHelper;
     private final BeerMapper beerMapper;
-    private final BeerService beerService;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserController(UserService userService, AuthenticationHelper authenticationHelper, BeerMapper beerMapper, BeerService beerService) {
+    public UserController(UserService userService,
+                          AuthenticationHelper authenticationHelper,
+                          BeerMapper beerMapper,
+                          UserMapper userMapper) {
         this.userService = userService;
         this.authenticationHelper = authenticationHelper;
         this.beerMapper = beerMapper;
-        this.beerService = beerService;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
@@ -84,8 +89,10 @@ public class UserController {
 
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
+    public User create(@Valid @RequestBody UserDto userDto) {
+        User user;
         try {
+            user = userMapper.fromDto(userDto);
             userService.create(user);
         } catch (EntityDuplicateException e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
@@ -94,10 +101,10 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable int id, @Valid @RequestBody User user) {
+    public User update(@PathVariable int id, @Valid @RequestBody UserDto userDto) {
+        User user;
         try {
-            user.setId(id);
-            userService.update(user);
+            user = userService.update(userMapper.fromDto(userDto));
         } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (EntityDuplicateException e) {
@@ -107,12 +114,17 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) {
+    public void delete(
+            @RequestHeader HttpHeaders headers,
+            @PathVariable int id) {
         try {
-            userService.delete(id);
+            User requester = authenticationHelper.tryGetUser(headers);
+            userService.delete(id, requester);
         } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
+        catch (AuthorizationException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
-
 }

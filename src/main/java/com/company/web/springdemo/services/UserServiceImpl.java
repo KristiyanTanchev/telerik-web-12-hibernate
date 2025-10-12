@@ -49,20 +49,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(User user) {
-        boolean duplicateExists = true;
-        try {
-            User existingUser = userRepository.getByEmail(user.getEmail());
-            if (existingUser.getId() == user.getId()) {
-                duplicateExists = false;
-            }
-        } catch (EntityNotFoundException e) {
-            duplicateExists = false;
-        }
-
-        if (duplicateExists) {
-            throw new EntityDuplicateException("User", "email", user.getEmail());
-        }
+    public User update(int userId, User user) {
+        validateUniqueEmail(user, userId);
+        validateUniqueUsername(user, userId);
 
         return userRepository.update(user);
     }
@@ -112,17 +101,31 @@ public class UserServiceImpl implements UserService {
         try {
             userRepository.getByEmail(user.getEmail());
             throw new EntityDuplicateException("User", "email", user.getEmail());
-        } catch (EntityNotFoundException ignored){
-
-        }
+        } catch (EntityNotFoundException ignored){ }
     }
 
     private void validateUniqueUsername(User user){
         try {
             userRepository.getByUsername(user.getUsername());
             throw new EntityDuplicateException("User", "username", user.getUsername());
-        } catch (EntityNotFoundException ignored) {
+        } catch (EntityNotFoundException ignored) { }
+    }
 
-        }
+    private void validateUniqueEmail(User user, int excludeId){
+        try {
+            User testUser = userRepository.getByEmail(user.getEmail());
+            if (testUser.getId() != excludeId){
+                throw new EntityDuplicateException("User", "email", user.getEmail());
+            }
+        } catch (EntityNotFoundException ignored){ }
+    }
+
+    private void validateUniqueUsername(User user, int excludeId){
+        try {
+            User testUser = userRepository.getByUsername(user.getUsername());
+            if (testUser.getId() != excludeId){
+                throw new EntityDuplicateException("User", "username", user.getUsername());
+            }
+        } catch (EntityNotFoundException ignored) { }
     }
 }

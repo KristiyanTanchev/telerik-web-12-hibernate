@@ -112,7 +112,7 @@ public class UserController {
     public User update(@PathVariable int id, @Valid @RequestBody UserDto userDto) {
         User user;
         try {
-            user = userService.update(userMapper.fromDto(userDto));
+            user = userService.update(id, userMapper.fromDto(userDto));
         } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (EntityDuplicateException e) {

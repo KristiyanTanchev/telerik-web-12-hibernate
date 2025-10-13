@@ -4,9 +4,9 @@ import com.company.web.springdemo.exceptions.EntityNotFoundException;
 import com.company.web.springdemo.models.Style;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -39,6 +39,40 @@ public class StyleRepositoryImpl implements StyleRepository {
                 throw new EntityNotFoundException("Style", "id", String.valueOf(id));
             }
             return style;
+        }
+    }
+
+    @Override
+    public Style update(Style style) {
+        try(Session session = sessionFactory.openSession()){
+            Transaction tx = session.beginTransaction();
+            try{
+                Style styleToUpdate = get(style.getId());
+                styleToUpdate.setName(style.getName());
+                tx.commit();
+                return styleToUpdate;
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    public void delete(int id) {
+        try (Session session = sessionFactory.openSession()){
+            Transaction tx = session.beginTransaction();
+            try{
+                Style styleToRemove = session.get(Style.class, id);
+                if (styleToRemove == null){
+                    throw new EntityNotFoundException("Style", "id", String.valueOf(id));
+                }
+                session.remove(styleToRemove);
+                tx.commit();
+            } catch (Exception e) {
+                tx.rollback();
+                throw e;
+            }
         }
     }
 }

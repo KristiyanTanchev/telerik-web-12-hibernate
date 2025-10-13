@@ -65,9 +65,13 @@ public class BeerRepositoryImpl implements BeerRepository {
     @Override
     public void create(Beer beer) {
         try(Session session = sessionFactory.openSession()){
-            session.beginTransaction();
-            session.persist(beer);
-            session.getTransaction().commit();
+            Transaction tx = session.beginTransaction();
+            try {
+                session.persist(beer);
+                tx.commit();
+            }catch (Exception e){
+                tx.rollback();
+            }
         }
     }
 

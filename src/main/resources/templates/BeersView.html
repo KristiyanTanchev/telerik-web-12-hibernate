@@ -20,6 +20,60 @@
 <div>
 
     <!-- The main content of the page goes here -->
+    <div class="body-content">
+        <h1>Beers</h1>
+
+        <!-- Simple filters (non-functional placeholders) -->
+        <form class="margin12" action="/beers" method="get">
+            <label class="form-label" for="filterName">Filter by name</label><br />
+            <input id="filterName" name="q" class="form-input" type="text" placeholder="e.g., IPA, Stout…" />
+
+            <label class="form-label" for="styleId">Style</label><br />
+            <select id="styleId" name="styleId" class="form-input">
+                <option value="">All styles</option>
+                <option value="1">IPA</option>
+                <option value="2">Stout</option>
+                <option value="3">Lager</option>
+            </select>
+            <button class="btn-primary" type="submit">Apply</button>
+        </form>
+
+        <!-- Table (uses your .table/.row/.cell classes) -->
+        <div class="table margin12">
+            <div class="header">
+                <div class="header-cell">Name</div>
+                <div class="header-cell">Style</div>
+                <div class="header-cell">ABV</div>
+                <div class="header-cell">Creator</div>
+                <div class="header-cell">Action</div>
+            </div>
+
+            <div class="rowGroup">
+                <div class="row">
+                    <div class="cell">Sunset Ale</div>
+                    <div class="cell">APA</div>
+                    <div class="cell">5.2%</div>
+                    <div class="cell">alice</div>
+                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
+                </div>
+                <div class="row">
+                    <div class="cell">Midnight Stout</div>
+                    <div class="cell">Stout</div>
+                    <div class="cell">6.8%</div>
+                    <div class="cell">bob</div>
+                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
+                </div>
+                <div class="row">
+                    <div class="cell">Hazy Days</div>
+                    <div class="cell">IPA</div>
+                    <div class="cell">6.1%</div>
+                    <div class="cell">carol</div>
+                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 </div>
 

@@ -21,6 +21,55 @@
 <div>
 
     <!-- The main content of the page goes here -->
+    <div class="body-content">
+        <h1>About BeerTag</h1>
+        <p class="margin12">
+            BeerTag is a tiny demo app for listing beers, styles, and user wishlists.
+        </p>
+
+        <h2 class="margin12">Data model</h2>
+        <div class="table margin12">
+            <div class="header">
+                <div class="header-cell">Table</div>
+                <div class="header-cell">Key Columns</div>
+                <div class="header-cell">Notes</div>
+                <div class="header-cell"> </div>
+                <div class="header-cell"> </div>
+            </div>
+            <div class="rowGroup">
+                <div class="row">
+                    <div class="cell">users</div>
+                    <div class="cell">user_id, username, email, is_admin</div>
+                    <div class="cell">Accounts</div>
+                    <div class="cell"> </div>
+                    <div class="cell"> </div>
+                </div>
+                <div class="row">
+                    <div class="cell">styles</div>
+                    <div class="cell">style_id, name</div>
+                    <div class="cell">Beer categories</div>
+                    <div class="cell"> </div>
+                    <div class="cell"> </div>
+                </div>
+                <div class="row">
+                    <div class="cell">beers</div>
+                    <div class="cell">beer_id, name, abv, style_id, creator_id</div>
+                    <div class="cell">Main catalog</div>
+                    <div class="cell"> </div>
+                    <div class="cell"> </div>
+                </div>
+                <div class="row">
+                    <div class="cell">wishlists</div>
+                    <div class="cell">user_id, beer_id</div>
+                    <div class="cell">Favorites</div>
+                    <div class="cell"> </div>
+                    <div class="cell"> </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
 
 </div>
 

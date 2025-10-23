@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-        lang="en">
+<html  xmlns:th="http://www.thymeleaf.org"
+       lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>BeerTag | About</title>
+    <title>BeerTag | Home</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
@@ -19,10 +19,9 @@
 </header>
 
 <div class="body-content">
-    <h2>About the project</h2>
-    <p>
-        <b>BeerTag</b> is a social network for sharing experience about drinking beer, mainly craft ones.
-    </p>
+    <h2>Something went wrong :(</h2>
+    <h2 class="label-error" th:text="${statusCode}"></h2>
+    <img th:src="@{/images/logo.png}" alt="BeerTag logo"/>
 </div>
 
 <footer>

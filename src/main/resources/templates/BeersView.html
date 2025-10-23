@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html  xmlns:th="http://www.thymeleaf.org"
+       lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>BeerTag</title>
+    <title>BeerTag | AllBeers</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
@@ -10,71 +11,42 @@
 <header>
     <div>
         <h3>
-            <a href="/home">Home</a>
-            | <a href="/beers">Beers</a>
-            | <a href="/about">About</a>
+            <a th:href="@{/}">Home</a>
+            | <a th:href="@{/beers}">Beers</a>
+            | <a th:href="@{/about}">About</a>
         </h3>
     </div>
 </header>
 
 <div>
+    <!-- If there are no beers -->
 
-    <!-- The main content of the page goes here -->
-    <div class="body-content">
-        <h1>Beers</h1>
-
-        <!-- Simple filters (non-functional placeholders) -->
-        <form class="margin12" action="/beers" method="get">
-            <label class="form-label" for="filterName">Filter by name</label><br />
-            <input id="filterName" name="q" class="form-input" type="text" placeholder="e.g., IPA, Stout…" />
-
-            <label class="form-label" for="styleId">Style</label><br />
-            <select id="styleId" name="styleId" class="form-input">
-                <option value="">All styles</option>
-                <option value="1">IPA</option>
-                <option value="2">Stout</option>
-                <option value="3">Lager</option>
-            </select>
-            <button class="btn-primary" type="submit">Apply</button>
-        </form>
-
-        <!-- Table (uses your .table/.row/.cell classes) -->
-        <div class="table margin12">
+    <div th:if="${beers.isEmpty()}">
+        <h2>No Beers</h2>
+    </div>
+    <!-- If there are beers -->
+    <div th:if="${!beers.isEmpty()}">
+        <h2>All Beers</h2>
+        <div class="table">
             <div class="header">
                 <div class="header-cell">Name</div>
-                <div class="header-cell">Style</div>
                 <div class="header-cell">ABV</div>
-                <div class="header-cell">Creator</div>
-                <div class="header-cell">Action</div>
+                <div class="header-cell">Style</div>
+                <div class="header-cell"
+                     th:if="${creatorEmail != null}">Creator email</div>
             </div>
-
-            <div class="rowGroup">
-                <div class="row">
-                    <div class="cell">Sunset Ale</div>
-                    <div class="cell">APA</div>
-                    <div class="cell">5.2%</div>
-                    <div class="cell">alice</div>
-                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
+            <div class="row" th:each="beer : ${beers}">
+                <div class="cell">
+                    <a th:href="@{/beers/{id}(id=${beer.getId()})}" th:text="${beer.getName()}">Beer Name 1</a>
                 </div>
-                <div class="row">
-                    <div class="cell">Midnight Stout</div>
-                    <div class="cell">Stout</div>
-                    <div class="cell">6.8%</div>
-                    <div class="cell">bob</div>
-                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
-                </div>
-                <div class="row">
-                    <div class="cell">Hazy Days</div>
-                    <div class="cell">IPA</div>
-                    <div class="cell">6.1%</div>
-                    <div class="cell">carol</div>
-                    <div class="cell"><button class="btn-primary" type="button">Add to wishlist</button></div>
-                </div>
+                <div class="cell" th:text="${beer.getAbv()} + '%'">5.0%</div>
+                <div class="cell" th:text="${beer.getStyle().getName()}">IPA</div>
+                <div class="cell"
+                     th:if="${creatorEmail != null}"
+                     th:text="${creatorEmail}">Creator email</div>
             </div>
         </div>
     </div>
-
-
 </div>
 
 <footer>

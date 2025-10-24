@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html  xmlns:th="http://www.thymeleaf.org"
-       lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>BeerTag | AllBeers</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body>
 <!-- The header and footer section are the same in each page -->
@@ -19,31 +19,104 @@
 </header>
 
 <div>
+
+    <form th:action="@{/beers}" method="get" class="margin12">
+        <div class="margin12">
+            <label for="beerName" class="form-label">Beer name</label><br/>
+            <input id="beerName" name="beerName" type="text" class="form-input" placeholder="e.g., Hazy, Stout…"/>
+        </div>
+
+        <div class="margin12">
+            <label for="styleName" class="form-label">Style name</label><br/>
+            <input id="styleName" name="styleName" type="text" class="form-input" placeholder="IPA, Lager, Stout…"/>
+        </div>
+
+        <div class="margin12">
+            <label class="form-label">ABV range (%)</label><br/>
+            <input id="minAbv" name="minAbv" type="number" min="0" max="20" step="0.1" class="form-input"
+                   placeholder="Min"/>
+            <input id="maxAbv" name="maxAbv" type="number" min="0" max="20" step="0.1" class="form-input"
+                   placeholder="Max"/>
+        </div>
+        <input type="hidden" name="sortBy"    th:value="${param.sortBy}" />
+        <input type="hidden" name="sortOrder" th:value="${param.sortOrder}" />
+        <button type="submit" class="btn-primary">Filter</button>
+        <button type="reset" class="btn-danger">Clear</button>
+    </form>
+
+
     <!-- If there are no beers -->
 
     <div th:if="${beers.isEmpty()}">
         <h2>No Beers</h2>
     </div>
     <!-- If there are beers -->
-    <div th:if="${!beers.isEmpty()}">
-        <h2>All Beers</h2>
-        <div class="table">
-            <div class="header">
-                <div class="header-cell">Name</div>
-                <div class="header-cell">ABV</div>
-                <div class="header-cell">Style</div>
-                <div class="header-cell"
-                     th:if="${creatorEmail != null}">Creator email</div>
-            </div>
-            <div class="row" th:each="beer : ${beers}">
-                <div class="cell">
-                    <a th:href="@{/beers/{id}(id=${beer.getId()})}" th:text="${beer.getName()}">Beer Name 1</a>
+    <div th:with="
+     curSort=${param.sortBy},
+     curDir=${param.sortOrder},
+     nextDir=${#strings.equalsIgnoreCase(curDir,'asc') ? 'desc' : 'asc'}">
+        <div th:text="${curSort}"></div>
+        <div th:text="${curDir}"></div>
+        <div th:text="${nextDir}"></div>
+        <div th:if="${!beers.isEmpty()}">
+            <h2>All Beers</h2>
+            <div class="table">
+                <div class="header">
+                    <!-- Sort by name -->
+                    <a class="header-cell"
+                       th:href="@{/beers(
+             beerName=${param.beerName},
+             styleName=${param.styleName},
+             minAbv=${param.minAbv},
+             maxAbv=${param.maxAbv},
+             sortBy='name',
+             sortOrder=${curSort == 'name' ? nextDir : 'asc'}
+         )}">
+                        Name
+                        <span th:if="${curSort=='name'}" th:text="${curDir=='asc' ? '↑' : '↓'}"></span>
+                    </a>
+
+                    <!-- Sort by abv -->
+                    <a class="header-cell"
+                       th:href="@{/beers(
+             beerName=${param.beerName},
+             styleName=${param.styleName},
+             minAbv=${param.minAbv},
+             maxAbv=${param.maxAbv},
+             sortBy='abv',
+             sortOrder=${curSort == 'abv' ? nextDir : 'asc'}
+         )}">
+                        ABV
+                        <span th:if="${curSort=='abv'}" th:text="${curDir=='asc' ? '↑' : '↓'}"></span>
+                    </a>
+
+                    <!-- Sort by style -->
+                    <a class="header-cell"
+                       th:href="@{/beers(
+             beerName=${param.beerName},
+             styleName=${param.styleName},
+             minAbv=${param.minAbv},
+             maxAbv=${param.maxAbv},
+             sortBy='style',
+             sortOrder=${curSort == 'style' ? nextDir : 'asc'}
+         )}">
+                        Style
+                        <span th:if="${curSort=='style'}" th:text="${curDir=='asc' ? '↑' : '↓'}"></span>
+                    </a>
+
+                    <div class="header-cell" th:if="${creatorEmail != null}">Creator</div>
                 </div>
-                <div class="cell" th:text="${beer.getAbv()} + '%'">5.0%</div>
-                <div class="cell" th:text="${beer.getStyle().getName()}">IPA</div>
-                <div class="cell"
-                     th:if="${creatorEmail != null}"
-                     th:text="${creatorEmail}">Creator email</div>
+                <div class="row" th:each="beer : ${beers}">
+                    <div class="cell">
+                        <a th:href="@{/beers/{id}(id=${beer.id})}" th:text="${beer.name}">Beer Name 1</a>
+                    </div>
+                    <div class="cell" th:text="${beer.abv} + '%'">5.0%</div>
+                    <div class="cell" th:text="${beer.style.name}">IPA</div>
+                    <div class="cell"
+                         th:if="${creatorEmail != null}"
+                         th:text="${creatorEmail}">Creator email
+                    </div>
+                </div>
             </div>
         </div>
     </div>

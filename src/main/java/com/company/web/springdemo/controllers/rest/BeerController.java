@@ -38,10 +38,10 @@ public class BeerController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Double minAbv,
             @RequestParam(required = false) Double maxAbv,
-            @RequestParam(required = false) Integer styleId,
+            @RequestParam(required = false) String styleName,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortOrder) {
-        return service.get(name, minAbv, maxAbv, styleId, sortBy, sortOrder);
+        return service.get(name, minAbv, maxAbv, styleName, sortBy, sortOrder);
     }
 
     @GetMapping("/{id}")

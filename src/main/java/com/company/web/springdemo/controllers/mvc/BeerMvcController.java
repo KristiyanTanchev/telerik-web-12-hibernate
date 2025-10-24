@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +35,23 @@ public class BeerMvcController {
             model.addAttribute("creatorEmail", beer.getCreatedBy().getEmail());
             model.addAttribute("beers", beers);
         }catch (EntityNotFoundException e){
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("statusCode",
+                    HttpStatus.NOT_FOUND.getReasonPhrase());
+            return "ErrorView";
         }
 
         return "BeersView";
     }
 
     @GetMapping
-    public String showBeers(Model model){
-        List<Beer> beers = beerService.get(null, null, null, null, null, null);
+    public String showBeers(Model model,
+                            @RequestParam(required = false) String beerName,
+                            @RequestParam(required = false) String styleName,
+                            @RequestParam(required = false) Double minAbv,
+                            @RequestParam(required = false) Double maxAbv,
+                            @RequestParam(defaultValue = "name") String sortBy,
+                            @RequestParam(defaultValue = "asc") String sortOrder){
+        List<Beer> beers = beerService.get(beerName, minAbv, maxAbv, styleName, sortBy, sortOrder);
 
         model.addAttribute("beers", beers);
 

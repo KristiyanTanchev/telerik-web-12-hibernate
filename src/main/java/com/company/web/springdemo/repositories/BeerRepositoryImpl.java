@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -30,13 +27,58 @@ public class BeerRepositoryImpl implements BeerRepository {
     }
 
     @Override
-    public List<Beer> get(String name, Double minAbv, Double maxAbv, Integer styleId, String sortBy, String sortOrder) {
-        try(Session session = sessionFactory.openSession())
-        {
-            Query<Beer> query = session.createQuery("from Beer", Beer.class);
-            return query.list();
+    public List<Beer> get(String name, Double minAbv, Double maxAbv, String styleName, String sortBy, String sortOrder) {
+        try (Session session = sessionFactory.openSession()) {
+
+            // Normalize ABV bounds if swapped
+            if (minAbv != null && maxAbv != null && minAbv > maxAbv) {
+                double t = minAbv; minAbv = maxAbv; maxAbv = t;
+            }
+
+            StringBuilder hql = new StringBuilder("select b from Beer b");
+            List<String> where = new ArrayList<>();
+            Map<String, Object> params = new HashMap<>();
+
+            if (name != null && !name.isBlank()) {
+                where.add("lower(b.name) like :name");
+                params.put("name", "%" + name.toLowerCase() + "%");
+            }
+            if (minAbv != null) {
+                where.add("b.abv >= :minAbv");
+                params.put("minAbv", minAbv);
+            }
+            if (maxAbv != null) {
+                where.add("b.abv <= :maxAbv");
+                params.put("maxAbv", maxAbv);
+            }
+            if (styleName != null && !styleName.isBlank()) {
+                where.add("b.style.name = :styleName");
+                params.put("styleName", "%" + styleName.toLowerCase() + "%");
+            }
+
+            if (!where.isEmpty()) {
+                hql.append(" where ").append(String.join(" and ", where));
+            }
+
+            // --- Sorting (whitelist) ---
+            String sortKey = (sortBy == null || sortBy.isBlank()) ? "name" : sortBy;
+            String sortExpr = switch (sortKey) {
+                case "id"   -> "b.id";
+                case "abv"  -> "b.abv";
+                case "name" -> "b.name";
+                // add more allowed props here, e.g. case "ibu" -> "b.ibu";
+                default     -> "b.name";
+            };
+            boolean desc = sortOrder != null && sortOrder.equalsIgnoreCase("desc");
+            hql.append(" order by ").append(sortExpr).append(desc ? " desc" : " asc");
+
+            Query<Beer> query = session.createQuery(hql.toString(), Beer.class);
+            params.forEach(query::setParameter);
+
+            return query.list(); // or query.getResultList() in newer APIs
         }
     }
+
 
     @Override
     public Beer get(int id) {

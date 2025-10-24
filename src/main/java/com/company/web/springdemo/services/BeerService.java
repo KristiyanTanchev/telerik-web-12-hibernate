@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BeerService {
 
-    List<Beer> get(String name, Double minAbv, Double maxAbv, Integer styleId, String sortBy, String sortOrder);
+    List<Beer> get(String name, Double minAbv, Double maxAbv, String styleName, String sortBy, String sortOrder);
 
     Beer get(int id);
 
